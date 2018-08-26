@@ -27,25 +27,13 @@
 import os
 
 from setuptools import find_packages, setup
-from setuptools.command.egg_info import egg_info
 
 readme = open('README.rst').read()
 history = open('CHANGES.rst').read()
 
-class EggInfoWithCompile(egg_info):
-    def run(self):
-        from babel.messages.frontend import compile_catalog
-        compiler = compile_catalog()
-        option_dict = self.distribution.get_option_dict('compile_catalog')
-        if option_dict.get('domain'):
-            compiler.domain = [option_dict['domain'][1]]
-        else:
-            compiler.domain = ['messages']
-        compiler.use_fuzzy = True
-        compiler.directory = option_dict['directory'][1]
-        compiler.run()
-        super().run()
-
+DATABASE = "postgresql"
+ELASTICSEARCH = "elasticsearch6"
+INVENIO_VERSION = "3.0.0"
 
 tests_require = [
     'check-manifest>=0.25',
@@ -58,6 +46,9 @@ tests_require = [
     'pytest>=2.8.0',
 ]
 
+
+invenio_search_version = '1.0.1'
+
 extras_require = {
     'docs': [
         'Sphinx>=1.5.1',
@@ -66,8 +57,15 @@ extras_require = {
 }
 
 extras_require['all'] = []
-for reqs in extras_require.values():
+for name, reqs in extras_require.items():
     extras_require['all'].extend(reqs)
+
+extras_require = {
+    'docs': [
+        'Sphinx>=1.5.1',
+    ],
+
+}
 
 setup_requires = [
     'Babel>=1.3',
@@ -76,7 +74,7 @@ setup_requires = [
 
 install_requires = [
     'dojson>=1.0',
-    'elasticsearch-dsl>=2.0.0,<3.0.0',
+    'elasticsearch-dsl<6.2.0,>=6.0.0',
     'Flask-BabelEx>=0.9.3',
     'invenio-access>=1.0.0',
     'invenio-assets>=1.0.0',
@@ -85,7 +83,7 @@ install_requires = [
     'invenio-jsonschemas>=1.0.0',
     'invenio-records>=1.0.0',
     'invenio-records-rest>=1.0.1',
-    'invenio-search>=1.0.0'
+    'invenio-search>=1.0.0',
 ]
 
 packages = find_packages()
@@ -98,9 +96,6 @@ with open(os.path.join('reroils_record_editor', 'version.py'), 'rt') as fp:
     version = g['__version__']
 
 setup(
-    cmdclass={
-        'egg_info': EggInfoWithCompile
-    },
     name='reroils-record-editor',
     version=version,
     description=__doc__,

@@ -24,9 +24,6 @@
 
 """Utilities for reroils-record-editor."""
 
-import copy
-import uuid
-
 from flask import current_app, url_for
 from invenio_db import db
 from invenio_pidstore.resolver import Resolver
@@ -94,16 +91,9 @@ def save_record(data, record_type, fetcher, minter,
         rec.commit()
     # create a new record
     else:
-        # generate bibid
-        uid = uuid.uuid4()
-        pid = minter(uid, record)
         # create a new record
-        rec = record_class.create(record, id_=uid)
+        rec = record_class.create(record, dbcommit=True, reindex=True)
 
-    db.session.commit()
-
-    record_indexer().index(rec)
-    record_indexer().client.indices.flush()
     _next = url_for('invenio_records_ui.%s' % record_type,
                     pid_value=pid.pid_value)
 
